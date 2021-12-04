@@ -25,3 +25,7 @@ __pycache__
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.vs/cloud-computing-cw/v16/.suo
+.vs/ProjectSettings.json
+.vs/slnx.sqlite
+.vs/VSWorkspaceState.json
