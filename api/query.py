@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 import datetime
 from sqlalchemy import desc
+from sqlalchemy import exc
 
 from __init__ import db
 
@@ -19,19 +20,38 @@ def db_commit_delete(row):
 	db.session.commit()
 
 def db_add_user(sub, email, picture, given_name, family_name):
-	user = User(sub = sub, email = email, picture = picture, given_name = given_name, family_name = family_name)
-	db.session.add(user)
-	db.session.commit()
+	try:
+		user = User(sub = sub, email = email, picture = picture, given_name = given_name, family_name = family_name)
+		db.session.add(user)
+		db.session.commit()
+	except exc.SQLAlchemyError as e:
+		db.session.rollback()
+		return False
+	else:
+		return True
+		
 
 def db_add_image(user_id, album_id = 0, date_uploaded = datetime.datetime.now(), caption = ''):
-	image = Image(user_id = user_id, album_id = album_id, date_uploaded = date_uploaded, caption = caption)
-	db.session.add(image)
-	db.session.commit()
+	try:
+		image = Image(user_id = user_id, album_id = album_id, date_uploaded = date_uploaded, caption = caption)
+		db.session.add(image)
+		db.session.commit()
+	except exc.SQLAlchemyError as e:
+		db.session.rollback()
+		return False
+	else:
+		return True
 
 def db_add_album(title, user_id, image_id = 0, date_created = datetime.datetime.now()):
-	album = Album(title = title, image_id = image_id, user_id = user_id, date_created = date_created)
-	db.session.add(album)
-	db.session.commit()
+	try:
+		album = Album(title = title, image_id = image_id, user_id = user_id, date_created = date_created)
+		db.session.add(album)
+		db.session.commit()
+	except exc.SQLAlchemyError as e:
+		db.session.rollback()
+		return False
+	else:
+		return True
 
 def db_delete_user(user_id):
 	User.query.filter_by(id = user_id).delete()
@@ -68,13 +88,17 @@ def db_get_user_by_email(email):
 
 #search for a user by their name
 def db_get_user_by_name(firstname, surname):
-	user = User.query.filter_by(given_name = firstname, family_name = surname).first()
-	return user
+	try:
+		user = User.query.filter_by(given_name = firstname, family_name = surname).first()
+	except exc.SQLAlchemyError as e:
+		return (False)
+	else:
+		return (True, user)
 
 #search for all images from a specific user id
 def db_get_image_by_user_id(user_id):
 	image = Image.query.filter_by(user_id = user_id).all()
-	return image
+	return (True, image)
 
 #search for the n most recent images from all users
 def db_get_n_recent_images(n):
@@ -105,6 +129,33 @@ def db_get_album_by_title(title):
 
 #image1 = db_add_image(user_id = query_user1.id, caption = "hello")
 
-#search = db_get_user_by_name("name", "surname")
-#print(search)
+user1 = db_add_user(5, "fdsfs", "jfdisfs", "name", "afds")
+print(user1)
 
+search = db_get_user_by_name("name", "surname")
+print(search[0])
+print(search[1])
+print(search)
+if(search[0]):
+	print("retrieved: " +str(search[1]))
+else:
+	print("database failure")
+
+'''
+user1 = User(sub = 10, email = "user@gmail.com", picture = "fadsad", given_name = "John", family_name = "Smith")
+db.session.add(user1)
+db.session.commit()
+
+query_user1 = User.query.filter_by(email = "user@gmail.com").first()
+
+Image.query.filter_by(user_id='1').all()
+
+from sqlalchemy import desc
+Image.query.order_by(desc(Image.date_uploaded)).limit(10).all()
+
+import datetime
+image1 = Image(user_id = query_user1.id, album_id = 2, date_uploaded = datetime.datetime.now(), caption = "hello")
+
+db.session.delete(query_user1)
+db.session.commit()
+'''

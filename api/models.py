@@ -1,5 +1,11 @@
 from __init__ import db
 
+
+album_image = db.Table('album_image', db.Model.metadata,
+    db.Column('album_id', db.Integer, db.ForeignKey('album.id'), primary_key = True),
+    db.Column('image_id', db.Integer, db.ForeignKey('image.id'), primary_key = True)
+ )
+
 class User(db.Model):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
@@ -19,10 +25,8 @@ class Image(db.Model):
     __tablename__ = 'image'
     id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
-    album_id = db.Column(db.Integer, db.ForeignKey('album.id'), nullable = False)
     date_uploaded = db.Column(db.DateTime, nullable = False)
     caption = db.Column(db.String(150))
-    image_album = db.relationship("Album", primaryjoin="Image.id==Album.image_id")
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
@@ -30,11 +34,11 @@ class Image(db.Model):
 class Album(db.Model):
     __tablename__ = 'album'
     id = db.Column(db.Integer, primary_key = True)
-    image_id = db.Column(db.Integer, db.ForeignKey('image.id'), nullable = False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable = False)
     title = db.Column(db.String(50))
     date_created = db.Column(db.DateTime, nullable = False)
-    album_image = db.relationship("Image", primaryjoin="Album.id==Image.album_id")
+
+    images = db.relationship("Image", secondary=album_image, backref=db.backref('albums'))
 
     def __repr__(self):
         return '<id {}>'.format(self.id)
