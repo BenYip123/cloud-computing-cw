@@ -19,7 +19,7 @@ class User(db.Model):
     user_album = db.relationship("Album", primaryjoin="User.id==Album.user_id")
 
     def __repr__(self):
-        return f'User ({self.id} {self.sub})'
+        return f'User ({self.id} {self.sub} {self.email} {self.picture} {self.given_name} {self.family_name})'
 
 class Image(db.Model):
     __tablename__ = 'image'
@@ -29,7 +29,7 @@ class Image(db.Model):
     caption = db.Column(db.String(150))
 
     def __repr__(self):
-        return '<id {}>'.format(self.id)
+        return f'Image ({self.id} {self.user_id} {self.date_uploaded} {self.caption})'
 
 class Album(db.Model):
     __tablename__ = 'album'
@@ -41,4 +41,4 @@ class Album(db.Model):
     images = db.relationship("Image", secondary=album_image, backref=db.backref('albums'))
 
     def __repr__(self):
-        return '<id {}>'.format(self.id)
+        return f'User ({self.id} {self.user_id} {self.title} {self.date_created})'
