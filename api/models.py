@@ -41,4 +41,4 @@ class Album(db.Model):
     images = db.relationship("Image", secondary=album_image, backref=db.backref('albums'))
 
     def __repr__(self):
-        return f'User ({self.id} {self.user_id} {self.title} {self.date_created})'
+        return f'Album ({self.id} {self.user_id} {self.title} {self.date_created})'

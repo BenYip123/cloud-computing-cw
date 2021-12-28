@@ -177,11 +177,43 @@ def db_get_users_n_recent_albums(user_id, n=50):
 #search for albums by title
 def db_get_album_by_title(title):
 	try:
-		album = Album.query.filter_by(title = title).all()
+		album = Album.query.filter_by(title = title).first()
 	except exc.SQLAlchemyError as e:
 		return (False)
 	else:
 		return (True, album)
+
+#get all images from a specific album_id
+def db_get_all_images_from_album(album_id):
+	try:
+		image = Image.query.filter(Image.albums.any(id=album_id)).all()
+	except exc.SQLAlchemyError as e:
+		return (False)
+	else:
+		return (True, image)
+
+#get all albums from a specific image_id (all albums that the image is in)
+def db_get_all_albums_from_images(image_id):
+	try:
+		album = Album.query.filter(Album.images.any(id=image_id)).all()
+	except exc.SQLAlchemyError as e:
+		return (False)
+	else:
+		return (True, album)
+
+#add to the album_image table
+def db_add_album_image(album_id, image_id):
+	try:
+		image = Image.query.filter(Image.id==image_id).first()
+		album = Album.query.filter(Album.id==album_id).first()
+		album.images.append(image)
+		db.session.add(album)
+		db.session.commit()
+	except exc.SQLAlchemyError as e:
+		db.session.rollback()
+		return False
+	else:
+		return True
 
 #query_user1 = User.query.filter_by(email = "user1@gmail.com").first()
 
@@ -193,6 +225,7 @@ print(user1)
 search = db_get_user_by_name("name", "afds")
 print(search[0])
 print(search[1])
+print(search[1].family_name)
 print(search)
 if(search[0]):
 	print("retrieved: " +str(search[1]))
@@ -203,22 +236,15 @@ print(db_get_album_by_title("title2"))
 print(db_get_album_by_user_id(1))
 print(db_delete_user(search[1].id))
 
+#example insert into album_image
+print(db_add_album_image(album_id=2, image_id=3))
 
-'''
-user1 = User(sub = 10, email = "user@gmail.com", picture = "fadsad", given_name = "John", family_name = "Smith")
-db.session.add(user1)
-db.session.commit()
+#example getting all images from a specific album
+album = db_get_album_by_user_id(1)
+print(album)
+print(db_get_all_images_from_album(album[1][1].id))
 
-query_user1 = User.query.filter_by(email = "user@gmail.com").first()
-
-Image.query.filter_by(user_id='1').all()
-
-from sqlalchemy import desc
-Image.query.order_by(desc(Image.date_uploaded)).limit(10).all()
-
-import datetime
-image1 = Image(user_id = query_user1.id, album_id = 2, date_uploaded = datetime.datetime.now(), caption = "hello")
-
-db.session.delete(query_user1)
-db.session.commit()
-'''
+#example getting all albums from a specific image
+image = db_get_image_by_id(3)
+print(image)
+print(db_get_all_albums_from_images(image[1].id)[1])
